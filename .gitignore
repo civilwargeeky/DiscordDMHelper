@@ -1,5 +1,11 @@
 # Test Files
 *.wav
+test*.*
+todo.txt
 
 # IDE Files
 .idea/*
+
+# Build Files
+dist/**
+build/**
