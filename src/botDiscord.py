@@ -132,7 +132,7 @@ class MyClient(discord.Client):
     else:
       log.info("No voice channel saved, type '{}initialize' while connected to a voice channel".format(settings["commandChar"]))
 
-    await self.change_presence(game=discord.Game(**settings["gamePlaying"]) if settings["gamePlaying"] else None)
+    await self.changeGame(**settings["gamePlaying"])
 
   async def on_message(self, message):
     if message.content.startswith(settings["commandChar"]):
@@ -157,7 +157,11 @@ class MyClient(discord.Client):
         newName = newName.content if newName else settings["gamePlaying"]["name"]
         settings["gamePlaying"] = {"name": newName, "type": 0}
         saveSettings()
-        await self.change_presence(game=discord.Game(**settings["gamePlaying"]) if settings["gamePlaying"] else None)
+        await self.changeGame(**settings["gamePlaying"])
+
+  async def changeGame(self, name=None, type=0):
+    await self.change_presence(game=discord.Game(name=name, type=type) if name else None)
+
 
   async def createVoiceClient(self):
     if not self.vc or not self.vc.is_connected():
