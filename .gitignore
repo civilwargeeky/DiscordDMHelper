@@ -9,3 +9,8 @@ todo.txt
 # Build Files
 dist/**
 build/**
+
+# Misc Files
+file_version_info.py
+version.txt
+*.json

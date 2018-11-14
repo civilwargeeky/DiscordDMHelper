@@ -6,9 +6,8 @@ def get(*loc):
   return os.path.join(site_packages, *loc)
 
 block_cipher = None
-
-
-a = Analysis(['main.py'],
+          
+a = Analysis(['src\\main.py'],
              pathex=['Q:\\Coding\\Projects\\Python\\DiscordDMHelper'],
              binaries=[(get("portaudio_x64.dll"), "."), (get("discord", "bin","*"), ".")],
              datas=[],
@@ -34,4 +33,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=True )
+          console=True , version='file_version_info.py', icon='src\\img\\icon.ico')
