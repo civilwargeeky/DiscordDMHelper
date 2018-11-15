@@ -9,6 +9,8 @@ todo.txt
 # Build Files
 dist/**
 build/**
+release/**
+audioCable/**
 
 # Python
 */__pycache__/**

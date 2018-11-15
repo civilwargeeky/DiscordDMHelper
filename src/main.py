@@ -1,8 +1,5 @@
 import botDiscord, logging, sys
 
-import updater
-sys.exit()
-
 class DiscordFilter(logging.Filter):
   def filter(self, record: logging.LogRecord):
     return int(not any(record.name.startswith(name) for name in ("discord", "websockets", "asyncio")))

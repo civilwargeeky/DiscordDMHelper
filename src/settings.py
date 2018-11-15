@@ -1,8 +1,10 @@
-import json, logging
+import json, logging, os
 
 log = logging.getLogger(__name__)
 
-SETTINGS_FILE = "_settings.json"
+SETTINGS_FILE = os.path.join(os.getenv('APPDATA'), "DiscordDMHelper", "_settings.json")
+if not os.path.exists(os.path.dirname(SETTINGS_FILE)): # Make this directory if it doesn't exist already
+  os.makedirs(os.path.dirname(SETTINGS_FILE))
 
 class SettingsContainer(dict):
   """ Stores settings, but also information about those settings """
