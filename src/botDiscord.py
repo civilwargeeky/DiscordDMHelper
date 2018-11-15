@@ -3,7 +3,7 @@ import sounddevice as sd
 import asyncio, discord
 import logging
 
-from settings import discord as settings, loadInitial, save as saveSettings, SETTINGS_FILE
+import settings as settingsModule
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class MockFile:
       self.buffer.extend(data)
       self.event.set()
 
-
+settings = settingsModule.discord
 settings.newSetting(
   {
     "id": "botToken",
@@ -115,7 +115,7 @@ class MyClient(discord.Client):
         return log.error("Channel no longer exists to join")
     else: # If we aren't updating from string, change our saved string
       settings["voiceChannel"] = channel.id
-      saveSettings()
+      settingsModule.saveSettings()
     self.channel = channel
     if self.vc and self.vc.channel != channel:
       await self.vc.move_to(channel)
@@ -123,7 +123,7 @@ class MyClient(discord.Client):
       await self.createVoiceClient()
 
   async def on_ready(self):
-    log.info('Logged on as {0}!'.format(self.user))
+    log.info(f'Logged on as {self.user}!'.format(self.user))
     if not discord.opus.is_loaded():
       discord.opus.load_opus('libopus-0.dll')
     if settings["voiceChannel"]: # If we have a saved voice channel, connect immediately
@@ -156,7 +156,7 @@ class MyClient(discord.Client):
         newName = await self.wait_for_message(timeout=10, author=message.author)
         newName = newName.content if newName else settings["gamePlaying"]["name"]
         settings["gamePlaying"] = {"name": newName, "type": 0}
-        saveSettings()
+        settingsModule.saveSettings()
         await self.changeGame(**settings["gamePlaying"])
 
   async def changeGame(self, name=None, type=0):
@@ -192,23 +192,23 @@ def start():
   print(discord.version_info)
 
   # Load settings
-  loadInitial()
+  settingsModule.loadInitial()
   if not settings["botToken"]:
-    import os, os.path as p
+    import os
     print("Bot token not found! Please make a bot, copy the bot token. A file will open, paste it there, save, and close.")
     print("Press enter when ready")
     input("... ")
-    filename = p.join(p.dirname(SETTINGS_FILE), "temp.txt")
-    os.system("notepad {}".format(filename))
+    filename = settingsModule.getFile("temp.txt")
+    os.system(f"notepad {filename}")
     with open(filename) as file:
       settings["botToken"] = file.read().strip()
     os.remove(filename)
-    saveSettings()
+    settingsModule.saveSettings()
 
   cableName, cableInputChannels = "CABLE Output (VB-Audio Virtual Cable)", 2
 
   log.debug("Making input stream")
-  log.debug("Searching for cable with name '{}' and input channels #{}".format(cableName, cableInputChannels))
+  log.debug(f"Searching for cable with name '{cableName}' and input channels #{cableInputChannels}")
   mockFile = MockFile()  # Make our mock file buffer. It will be ignoring input until specifically told to play
   for deviceNum, device_info in enumerate(sd.query_devices()):
     if device_info["name"] == cableName and device_info["max_input_channels"] == cableInputChannels:

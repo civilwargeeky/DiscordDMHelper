@@ -6,6 +6,9 @@ SETTINGS_FILE = os.path.join(os.getenv('APPDATA'), "DiscordDMHelper", "_settings
 if not os.path.exists(os.path.dirname(SETTINGS_FILE)): # Make this directory if it doesn't exist already
   os.makedirs(os.path.dirname(SETTINGS_FILE))
 
+def getFile(*args):
+  return os.path.join(os.path.dirname(SETTINGS_FILE), *args)
+
 class SettingsContainer(dict):
   """ Stores settings, but also information about those settings """
 

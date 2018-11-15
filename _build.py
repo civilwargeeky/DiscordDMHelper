@@ -5,6 +5,8 @@ CABLE_URL = "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.
 EXE_VERSION_FILE_TEMPLATE = "file_version_info_template.py"
 EXE_VERSION_FILE = "file_version_info.py"
 
+startTime = time.time()
+
 ### STEP 0: Delete files from building if asked ###
 if "clean" in sys.argv:
   print("Deleting all extra files")
@@ -51,12 +53,20 @@ with open(EXE_VERSION_FILE_TEMPLATE) as fileIn, open(EXE_VERSION_FILE, "w") as f
   
 buffer = io.BytesIO()
 
-try:
-  print("Downloading zip file from", CABLE_URL)
-  with request.urlopen(CABLE_URL) as file:
-    buffer.write(file.read())
-except:
-  print("Could not get new files from internet")
+if not os.path.exists(CABLE_DIR):
+  try:
+    print("Downloading zip file from", CABLE_URL)
+    with request.urlopen(CABLE_URL) as file:
+      buffer.write(file.read())
+    print("Extracting files to", CABLE_DIR)
+    zip = zipfile.ZipFile(buffer)
+    zip.extractall(CABLE_DIR)
+  except:
+    print("Could not get audio cable from the internet. Stopping build")
+    raise RuntimeError("BUILD FAILED")
+else:
+  print("Audio Cable Files already exist")
+"""
 else:
   try:
     print("Making directory")
@@ -65,10 +75,9 @@ else:
     print("Except it already existed, so remove all files first")
     shutil.rmtree(CABLE_DIR)
     os.mkdir(CABLE_DIR)
+"""
 
-print("Extracting files to", CABLE_DIR)
-zip = zipfile.ZipFile(buffer)
-zip.extractall(CABLE_DIR)
+
 
 ### STEP 3: Run the installer ###
 print(">>> Building Executable")
@@ -79,4 +88,6 @@ print(">>> Making installer")
 os.system('"C:\Program Files (x86)\Inno Setup 5\Compil32.exe" /cc _build.iss')
 print(">>> Making installer complete")
 
+
+print(">>> Build Time Elapsed:", time.time()-timeStart)
 time.sleep(1)

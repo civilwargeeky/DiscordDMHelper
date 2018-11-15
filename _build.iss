@@ -29,7 +29,7 @@ SetupIconFile="src\img\icon.ico"
 PrivilegesRequired=admin 
 
 [Files]
-Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs
+Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 ; We will ship the version with this file, so we can test on the first running if we need to update
 ; Source: "version.txt"; DestDir: "{app}"
 ; We will also ship files for running the VB Audio Driver
