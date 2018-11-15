@@ -40,3 +40,4 @@ Source: "audioCable\*"; DestDir: "{tmp}"
 
 [Run]
 Filename: "{tmp}\VBCABLE_Setup_x64.exe"; Description: "Install Audio Drivers";Flags: runascurrentuser postinstall unchecked
+Filename: "{app}\DiscordDMHelper.exe"; Description: "Run Program";Flags: postinstall
