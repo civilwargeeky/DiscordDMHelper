@@ -3,7 +3,7 @@ import sounddevice as sd
 import asyncio, discord
 import logging
 
-from settings import discord as settings, loadInitial, save as saveSettings
+from settings import discord as settings, loadInitial, save as saveSettings, SETTINGS_FILE
 
 log = logging.getLogger(__name__)
 
@@ -194,8 +194,15 @@ def start():
   # Load settings
   loadInitial()
   if not settings["botToken"]:
-    print("Bot token not found! Please make a bot, and paste the token below")
-    settings["botToken"] = input("> ")
+    import os, os.path as p
+    print("Bot token not found! Please make a bot, copy the bot token. A file will open, paste it there, save, and close.")
+    print("Press enter when ready")
+    input("... ")
+    filename = p.join(p.dirname(SETTINGS_FILE), "temp.txt")
+    os.system("notepad {}".format(filename))
+    with open(filename) as file:
+      settings["botToken"] = file.read().strip()
+    os.remove(filename)
     saveSettings()
 
   cableName, cableInputChannels = "CABLE Output (VB-Audio Virtual Cable)", 2

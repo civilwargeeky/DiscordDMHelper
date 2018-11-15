@@ -1,15 +1,4 @@
-import botDiscord, logging, sys
-
-class DiscordFilter(logging.Filter):
-  def filter(self, record: logging.LogRecord):
-    return int(not any(record.name.startswith(name) for name in ("discord", "websockets", "asyncio")))
-
-log = logging.getLogger() # The root logger
-log.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s'))
-handler.addFilter(DiscordFilter())
-log.addHandler(handler)
+import botDiscord, logger, updater
 
 if __name__ == "__main__":
   client, thread = botDiscord.start()
