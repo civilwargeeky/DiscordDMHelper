@@ -138,7 +138,7 @@ class MyClient(discord.Client):
     else:
       log.info("No voice channel saved, type '{}initialize' while connected to a voice channel".format(settings["commandChar"]))
 
-    await self.changeGame(**settings["gamePlaying"])
+    await self.changeGame(**settings["gamePlaying"], save=False)
 
   async def on_message(self, message):
     if message.content.startswith(settings["commandChar"]):
@@ -161,13 +161,14 @@ class MyClient(discord.Client):
         await self.send_message(message.channel, "Waiting for new game title")
         newName = await self.wait_for_message(timeout=10, author=message.author)
         newName = newName.content if newName else settings["gamePlaying"]["name"]
-        settings["gamePlaying"] = {"name": newName, "type": 0}
-        settingsModule.save()
         await self.changeGame(**settings["gamePlaying"])
 
-  async def changeGame(self, name=None, type=0):
+  async def changeGame(self, name=None, type=0, save=True):
     log.info(f"Changing game presence to '{name}' with type {type}")
+    settings["gamePlaying"] = {"name": name, "type": 0}
     await self.change_presence(game=discord.Game(name=name, type=type) if name else None)
+    if save:
+      settingsModule.save()
 
   def async_changeGame(self, *args, **kwargs):
     """ Puts this into the loop and returns """

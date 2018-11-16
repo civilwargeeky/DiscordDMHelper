@@ -1,5 +1,8 @@
 import logging, sys
-import botDiscord, updater
+import botDiscord, settings, updater
+
+import logger
+logger.setup()
 
 log = logging.getLogger(__name__)
 
@@ -37,4 +40,8 @@ if __name__ == "__main__":
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
     client.async_logout()
-    print("Finished logging out")
+    didJoin = thread.join(timeout=5)
+    if didJoin:
+      print("Successfully logged out")
+    else:
+      print("Wait for logout timed out")

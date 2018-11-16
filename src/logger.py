@@ -8,6 +8,11 @@ class DiscordFilter(logging.Filter):
 log = logging.getLogger() # The root logger
 log.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s'))
+#handler.setFormatter(logging.Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s'))
+handler.setFormatter(logging.Formatter('%(levelname)s (%(name)s): %(message)s'))
 handler.addFilter(DiscordFilter())
 log.addHandler(handler)
+
+def setup():
+  """ May do something in the future, but for now just allows us to import without Unused import exception """
+  pass
