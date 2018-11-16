@@ -1,5 +1,5 @@
 import logging, sys
-import botDiscord, settings, updater
+import botDiscord, updater
 
 import logger
 logger.setup()
@@ -18,9 +18,10 @@ if __name__ == "__main__":
     (h)elp: display this
     (p)ause: Pauses the currently playing stream. Plays if paused
     (s)et [text to set]: Set's the bot's "Now Playing" to the argument
+    e(x)it: Exits the bot
   Discord Bot Commands (all should be prefixed with caret (^)):
     initialize: Set the voice channel the current user is connected to\n    as the active voice channel
-    connect: Connects the bot to the active voice channel if disonnected
+    connect: Connects the bot to the active voice channel if disconnected
     disconnect: Disconnects the bot from the active voice channel
     pause: Pauses a playing stream, or plays if paused
     set game: Prompts to set the current "now playing" for the bot
@@ -37,6 +38,8 @@ if __name__ == "__main__":
         client.pause()
       if cmd == "s":
         client.async_changeGame(" ".join(text.split()[1:]))
+      if cmd == "x":
+        raise KeyboardInterrupt()
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
     client.async_logout()
