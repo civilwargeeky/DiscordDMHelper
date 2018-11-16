@@ -1,0 +1,8 @@
+Unfortunately, some modules cannot be installed via pipenv, so must be installed otherwise
+Below is the list of all modules necessary
+
+discord.py[voice]
+pyqt5
+sounddevice
+SoundFile
+pywin32
