@@ -33,11 +33,11 @@ Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 ; We will ship the version with this file, so we can test on the first running if we need to update
 ; Source: "version.txt"; DestDir: "{app}"
 ; We will also ship files for running the VB Audio Driver
-Source: "audioCable\*"; DestDir: "{tmp}"
+Source: "audioCable\*"; DestDir: "{tmp}\audio"
 
 ; [Icons]
 ; Name: "{userdesktop}\DiscordDMHelper"; FileName: "{app}\DiscordDMHelper.exe"; WorkingDir: "{app}"; IconFilename: "{app}\img\icon.ico" 
 
 [Run]
-Filename: "{tmp}\VBCABLE_Setup_x64.exe"; Description: "Install Audio Drivers";Flags: runascurrentuser postinstall unchecked
+Filename: "{tmp}\audio\VBCABLE_Setup_x64.exe"; Description: "Install Audio Drivers";Flags: runascurrentuser postinstall unchecked
 Filename: "{app}\DiscordDMHelper.exe"; Description: "Run Program";Flags: postinstall

@@ -54,7 +54,7 @@ def updateProgram():
   versionCurrent = getSelfVersion()
   if versionCurrent is None:
     log.error("Could not get version from executable file! Not updating.")
-    return
+    return False
 
   try:
     log.info("Beginning update check")

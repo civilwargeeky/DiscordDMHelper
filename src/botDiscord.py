@@ -108,6 +108,12 @@ class MyClient(discord.Client):
     self.vc: discord.VoiceClient = None # Voice Client object of the currently connected channel
     self.player: discord.voice_client.StreamPlayer = None # Audio stream player
 
+  def _callCoro(self, coro):
+    asyncio.get_event_loop().call_soon(asyncio.ensure_future(coro))
+
+  def _waitCoro(self, coro):
+   asyncio.wait_for(asyncio.ensure_future(coro), 10)
+
   async def updateChannel(self, channel: discord.Channel):
     if type(channel) == str:
       channel = self.get_channel(channel)
@@ -115,7 +121,7 @@ class MyClient(discord.Client):
         return log.error("Channel no longer exists to join")
     else: # If we aren't updating from string, change our saved string
       settings["voiceChannel"] = channel.id
-      settingsModule.saveSettings()
+      settingsModule.save()
     self.channel = channel
     if self.vc and self.vc.channel != channel:
       await self.vc.move_to(channel)
@@ -156,12 +162,16 @@ class MyClient(discord.Client):
         newName = await self.wait_for_message(timeout=10, author=message.author)
         newName = newName.content if newName else settings["gamePlaying"]["name"]
         settings["gamePlaying"] = {"name": newName, "type": 0}
-        settingsModule.saveSettings()
+        settingsModule.save()
         await self.changeGame(**settings["gamePlaying"])
 
   async def changeGame(self, name=None, type=0):
+    log.info(f"Changing game presence to '{name}' with type {type}")
     await self.change_presence(game=discord.Game(name=name, type=type) if name else None)
 
+  def async_changeGame(self, *args, **kwargs):
+    """ Puts this into the loop and returns """
+    self._callCoro(self.changeGame(*args, **kwargs))
 
   async def createVoiceClient(self):
     if not self.vc or not self.vc.is_connected():
@@ -181,12 +191,16 @@ class MyClient(discord.Client):
 
   def pause(self):
     if self.vc and self.vc.is_connected() and self.player:
-      log.info("Pausing/Resuming Self")
       if self.player.is_playing():
+        log.info("Pausing Self")
         self.player.pause()
         self.audioFile.stop()
       else:
+        log.info("Resuming Self")
         self.player.resume() # Should automatically start audioFile when we first read
+
+  def async_logout(self):
+    self._waitCoro(self.logout())
 
 def start():
   print(discord.version_info)
@@ -194,8 +208,12 @@ def start():
   # Load settings
   settingsModule.loadInitial()
   if not settings["botToken"]:
-    import os
-    print("Bot token not found! Please make a bot, copy the bot token. A file will open, paste it there, save, and close.")
+    import os, sys, webbrowser
+    print("Bot token not found! Please follow the next instructions to make a new bot. Press enter when ready (or press 'n' to skip)")
+    val = input("... ")
+    if val != "n":
+      webbrowser.open("https://twentysix26.github.io/Red-Docs/red_guide_bot_accounts/#creating-a-new-bot-account")
+    print("Please copy the bot token. A file will open, paste it there, save, and close.")
     print("Press enter when ready")
     input("... ")
     filename = settingsModule.getFile("temp.txt")
@@ -203,7 +221,7 @@ def start():
     with open(filename) as file:
       settings["botToken"] = file.read().strip()
     os.remove(filename)
-    settingsModule.saveSettings()
+    settingsModule.save()
 
   cableName, cableInputChannels = "CABLE Output (VB-Audio Virtual Cable)", 2
 
@@ -225,12 +243,13 @@ def start():
 
 
   client = MyClient(mockFile, stream)
+  clientLoop = asyncio.new_event_loop()
 
   def run():
-    asyncio.set_event_loop(asyncio.new_event_loop())
+    asyncio.set_event_loop(clientLoop)
     client.run(settings["botToken"])
 
   thread = threading.Thread(target=run, daemon=True)
   thread.start()
 
-  return client, thread # Return these for use with other parts of the program
+  return client, thread, clientLoop # Return these for use with other parts of the program
