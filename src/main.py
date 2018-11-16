@@ -40,8 +40,8 @@ if __name__ == "__main__":
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
     client.async_logout()
-    didJoin = thread.join(timeout=5)
-    if didJoin:
-      print("Successfully logged out")
-    else:
+    thread.join(timeout=5)
+    if thread.is_alive():
       print("Wait for logout timed out")
+    else:
+      print("Successfully logged out")
