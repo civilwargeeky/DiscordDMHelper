@@ -1,5 +1,5 @@
 import logging, sys
-import botDiscord, updater
+import botDiscord, updater, gui
 
 import logger
 logger.setup()
@@ -28,6 +28,7 @@ if __name__ == "__main__":
   """
 
   try:
+    """
     print('Press ctrl-C to exit. "Help" for commands')
     while True:
       text = input("> ")
@@ -40,8 +41,11 @@ if __name__ == "__main__":
         client.async_changeGame(" ".join(text.split()[1:]))
       if cmd == "x":
         raise KeyboardInterrupt()
+      """
+    gui.run()
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
+  finally:
     client.async_logout()
     thread.join(timeout=5)
     if thread.is_alive():
