@@ -1,6 +1,7 @@
 # -*- mode: python -*-
 
 import distutils.sysconfig, os.path
+from ctypes.util import find_library
 site_packages = distutils.sysconfig.get_python_lib()
 def get(*loc):
   return os.path.join(site_packages, *loc)
@@ -9,7 +10,9 @@ block_cipher = None
           
 a = Analysis(['src\\main.py'],
              pathex=['Q:\\Coding\\Projects\\Python\\DiscordDMHelper'],
-             binaries=[(get("portaudio_x64.dll"), "."), (get("discord", "bin","*"), ".")],
+             binaries=[(get("_sounddevice_data", "portaudio-binaries", "libportaudio64bit.dll"), os.path.join("_sounddevice_data", "portaudio-binaries")),
+                (get("discord", "bin","*"), ".")],
+             #binaries=[(find_library("lib/libportaudio.dylib"), "."), (get("discord", "bin","*"), ".")],
              datas=[],
              hiddenimports=[],
              hookspath=[],

@@ -1,9 +1,9 @@
 import zipfile, urllib.request as request, sys, io, os, shutil, time
 
+import requests, zipfile, tarfile, io
+
 CABLE_DIR  = "audioCable"
 CABLE_URL  = "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip"
-FFMPEG_DIR = "ffmpeg"
-FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.1-win64-static.zip"
 EXE_VERSION_FILE_TEMPLATE = "file_version_info_template.py"
 EXE_VERSION_FILE = "file_version_info.py"
 
@@ -75,22 +75,6 @@ try:
       raise RuntimeError("BUILD FAILED")
   else:
     print("Audio Cable Files already exist")
-    
-  """
-  if not os.path.exists(FFMPEG_DIR):
-    try:
-      print("Downloading ffmpeg zip file from", FFMPEG_URL)
-      with request.urlopen(FFMPEG_URL) as file:
-        buffer.write(file.read())
-      print("Extracting files to", FFMPEG_DIR)
-      zip = zipfile.ZipFile(buffer)
-      zip.extractall(FFMPEG_DIR)
-    except:
-      print("Could not get FFMPEG from the internet. Stopping build")
-      raise RuntimeError("BUILD FAILED")
-  else:
-    print("FFMPEG Files already exist")
-  """
 
   ### STEP 3: Run the installer ###
   print(">>> Building Executable")

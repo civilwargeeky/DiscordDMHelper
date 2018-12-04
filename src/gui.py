@@ -2,27 +2,40 @@ import sys
 from PyQt5.QtWidgets import *
 from ui.MainWindow import Ui_MainWindow
 import os, sounddevice as sd, soundfile as sf
-from settings import gui, save, loadInitial
+from settings import gui as guiSettings, save, loadInitial
+
+guiSettings.newSetting(
+  {
+    "id": "soundboardDirectory",
+    "default": "",
+    "hidden": True,
+    "verify": lambda x: not x or os.path.isdir(x)
+  },
+)
+loadInitial()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.setupUi(self)
 
+    # The current directory we look for music in
     self.soundDirectory = None
+    # Each element is three-list of (file name, display name, resource)
+    # Resource may either be a file name (or a file name in tmp or appdata for converted) or a numpy array
+    # representing the sound
     self.soundButtons = []
 
     self.pauseButton.clicked.connect(lambda: print("Pausing!"))
     self.soundsFolderButton.clicked.connect(self.chooseSoundFolder)
 
-    loadInitial()
-    if "directory" in gui:
-      self.chooseSoundFolder(gui["directory"])
+    if "soundboardDirectory" in guiSettings:
+      self.chooseSoundFolder(guiSettings["soundboardDirectory"])
 
   def chooseSoundFolder(self, directory=None):
-    if not directory:
+    if not directory: # If a directory is not passed in as argument
       directory = QFileDialog.getExistingDirectory(self, "Select Soundboard Directory")
-      gui["directory"] = directory
+      guiSettings["soundboardDirectory"] = directory
       save()
     if directory:
       soundButton: QAbstractButton
@@ -47,9 +60,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
               j = 0
 
   def playSound(self, path):
-    data, fs = sf.read(os.path.normpath(path), dtype='float32')
-    sd.play(data, fs)
-    status = sd.wait()
+    print("Playing sound!", path)
+    try:
+      data, fs = sf.read(os.path.normpath(path), dtype='float32')
+      num = int(1*fs)
+      for i in range(num):
+        data[i] *= i/num
+
+      num = int(1 * fs)
+      for i in range(num):
+        data[-i] *= i / num
+
+      sd.play(data, fs)
+      status = sd.wait()
+    except Exception as e:
+      print(e, type(e))
 
 
 class App(QApplication):

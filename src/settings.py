@@ -113,6 +113,9 @@ def load(initial=False):
     for name in _names: # Make sure we update in place and don't make new values
       _names[name].clear()
       _names[name].update(data[name])
+      for id in _names[name].info: # Check to make sure we have all values at least at a default
+        if id not in _names[name]:
+          _names[name][id] = _names[name].info[id]["default"]
 
 def loadInitial():
   return load(initial=True)

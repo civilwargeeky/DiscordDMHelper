@@ -13,7 +13,7 @@ release/**
 audioCable/**
 
 # Python
-*/__pycache__/**
+**/__pycache__/**
 
 # Misc Files
 file_version_info.py
