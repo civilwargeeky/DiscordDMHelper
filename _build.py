@@ -89,5 +89,5 @@ os.system('"C:\Program Files (x86)\Inno Setup 5\Compil32.exe" /cc _build.iss')
 print(">>> Making installer complete")
 
 
-print(">>> Build Time Elapsed:", time.time()-timeStart)
+print(">>> Build Time Elapsed:", time.time()-startTime)
 time.sleep(1)
