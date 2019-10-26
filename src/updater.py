@@ -77,7 +77,7 @@ def updateProgram():
             break
           elif versionCurrent[i] < versionNew[i]:
             try: #After this point, we want another exception handler that will stop the program with error, because the user expects a download to be happening
-              log.info("Older version installed! Updating to version" + ".".join(map(str, versionNew)))
+              log.info("Older version installed! Updating to version " + ".".join(map(str, versionNew)))
               fileData = updateData["assets"][0]
               webAddress = fileData["browser_download_url"]
               #                                used to be 'fileData["name"]'

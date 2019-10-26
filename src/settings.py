@@ -113,9 +113,17 @@ def load(initial=False):
     for name in _names: # Make sure we update in place and don't make new values
       _names[name].clear()
       _names[name].update(data[name])
+
       for id in _names[name].info: # Check to make sure we have all values at least at a default
         if id not in _names[name]:
           _names[name][id] = _names[name].info[id]["default"]
+
+    # Legacy updating code for updating 1.2.2.0 to newer versions
+    if "voiceChannel" in _names["discord"] and type(_names["discord"]["voiceChannel"]) == str:
+      log.warning("Updating save file to newest version!")
+      _names["discord"]["voiceChannel"] = int(_names["discord"]["voiceChannel"])
+      save() # Save these changes
+
 
 def loadInitial():
   return load(initial=True)

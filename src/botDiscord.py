@@ -7,7 +7,7 @@ import settings as settingsModule
 
 log = logging.getLogger(__name__)
 
-class MockFile:
+class MockFile(discord.AudioSource):
   """
   This is a mock file that will buffer output from a sounddevice recording.
   If not playing, output will not buffered to save RAM
@@ -16,23 +16,26 @@ class MockFile:
     self.buffer = collections.deque(bytearray(), maxlen=960000) # Limit to ~100kB just in case it's left playing
     self.event = threading.Event()
     self.rateData = None
+    print("MockFile Initiated")
 
     self.playing = False # If this is false, nothing is actually buffered
 
   def play(self):
     """ Begins recording audio and clears the buffer """
+    print("Playing")
     self.playing = True
     self.buffer.clear()  # Clear any existing buffer so there is as little latency as possible
 
   def stop(self):
     """ Stops recording from the buffer """
+    print("Stopping")
     self.playing = False
 
   def callback(self, indata, frames, time, status):
     """ callback function to give to the sounddevice """
     self.write(indata.copy(order="C"))
 
-  def read(self, numBytes: int or None=None) -> bytes:
+  def read(self, numBytes: int or None=3840) -> bytes:
     """
     A stream player may read from this to get a sample of the audio
     NOTE: This must return bytes, not a bytearray because the encoder silently fails if you pass anything but bytes
@@ -41,7 +44,6 @@ class MockFile:
     """
     if not self.playing: # If a read is requested but we're paused, play to avoid deadlock
       self.play()
-    #print("Reading data!", numBytes, len(self.buffer))
     if type(numBytes) == int and numBytes < 0:
       numBytes = None
     toRet = bytearray() # Buffer to put desired bytes into
@@ -50,7 +52,7 @@ class MockFile:
         toRet.append(self.buffer.popleft())
         if numBytes and len(toRet) >= numBytes:
           return bytes(toRet)
-      except IndexError:
+      except IndexError: # Occurs when there's a pop from an empty buffer
         if not numBytes:
           return bytes(toRet)
         else: # If we don't have the requisite number of bytes, wait for more to be written
@@ -89,6 +91,7 @@ settings.newSetting(
   },
   {
     "id": "voiceChannel",
+    "type": int,
     "hidden": True
   },
   {
@@ -104,9 +107,8 @@ class MyClient(discord.Client):
     super().__init__(*args, **kwargs)
     self.audioFile = audioFile
     self.recordStream = recordStream
-    self.channel: discord.Channel = None # Voice channel that we are to connect to
+    self.channel: discord.VoiceChannel = None # Voice channel that we are to connect to
     self.vc: discord.VoiceClient = None # Voice Client object of the currently connected channel
-    self.player: discord.voice_client.StreamPlayer = None # Audio stream player
 
   def _callCoro(self, coro):
     asyncio.get_event_loop().call_soon(asyncio.ensure_future(coro))
@@ -114,8 +116,8 @@ class MyClient(discord.Client):
   def _waitCoro(self, coro):
    asyncio.wait_for(asyncio.ensure_future(coro), 10)
 
-  async def updateChannel(self, channel: discord.Channel):
-    if type(channel) == str:
+  async def updateChannel(self, channel: discord.VoiceChannel):
+    if type(channel) == int:
       channel = self.get_channel(channel)
       if not channel: # Indicates the channel no longer exists, or we have no permissions
         return log.error("Channel no longer exists to join")
@@ -143,13 +145,13 @@ class MyClient(discord.Client):
   async def on_message(self, message):
     if message.content.startswith(settings["commandChar"]):
       if message.content[1:] == "initialize":
-        if message.author.voice_channel:
-          log.info("Set new voice channel for future use:"+message.author.voice_channel.id)
-          await self.send_message(message.channel, "New Voice Channel Set!")
-          await self.updateChannel(message.author.voice_channel)
+        if message.author.channel:
+          log.info("Set new voice channel for future use:"+message.author.channel.id)
+          await message.channel.send("New Voice Channel Set!")
+          await self.updateChannel(message.author.channel)
         else:
           log.info("Tried setting new voice channel, but user was not connected to one")
-          await self.send_message(message.channel, "You must be connected to a voice channel to initialize!")
+          await message.channel.send("You must be connected to a voice channel to initialize!")
       elif message.content[1:] == "connect":
         await self.createVoiceClient()
       elif message.content[1:] == "disconnect":
@@ -158,15 +160,16 @@ class MyClient(discord.Client):
         self.pause()
       elif message.content[1:] == "set game":
         log.info("Setting new presence")
-        await self.send_message(message.channel, "Waiting for new game title")
-        newName = await self.wait_for_message(timeout=10, author=message.author)
+        await message.channel.send("Waiting for new game title")
+        newName = await self.wait_for(timeout=10, check=lambda m: message.author == m.author)
         newName = newName.content if newName else settings["gamePlaying"]["name"]
         await self.changeGame(**settings["gamePlaying"])
 
   async def changeGame(self, name=None, type=0, save=True):
     log.info(f"Changing game presence to '{name}' with type {type}")
     settings["gamePlaying"] = {"name": name, "type": 0}
-    await self.change_presence(game=discord.Game(name=name, type=type) if name else None)
+    if name:
+      await self.change_presence(discord.Activity(name=name, type=type))
     if save:
       settingsModule.save()
 
@@ -178,10 +181,9 @@ class MyClient(discord.Client):
     if not self.vc or not self.vc.is_connected():
       log.debug("Creating new voice client!")
       log.debug("Awaiting voice channel")
-      self.vc = await self.join_voice_channel(self.channel)
+      self.vc = await self.channel.connect()
       log.debug("Voice channel acquired, making player")
-      self.player = self.vc.create_stream_player(self.audioFile)
-      self.player.start()
+      self.vc.play(self.audioFile)
       log.debug("Starting player!")
 
   async def disconnectVoiceClient(self):
@@ -191,14 +193,14 @@ class MyClient(discord.Client):
       self.audioFile.stop() # Stop recording audio, so it's crisp when we read again
 
   def pause(self):
-    if self.vc and self.vc.is_connected() and self.player:
-      if self.player.is_playing():
+    if self.vc and self.vc.is_connected():
+      if self.vc.is_playing():
         log.info("Pausing Self")
-        self.player.pause()
+        self.vc.pause()
         self.audioFile.stop()
       else:
         log.info("Resuming Self")
-        self.player.resume() # Should automatically start audioFile when we first read
+        self.vc.resume() # Should automatically start audioFile when we first read
 
   def async_logout(self):
     self._waitCoro(self.logout())
