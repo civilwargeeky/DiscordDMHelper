@@ -91,6 +91,7 @@ settings.newSetting(
   },
   {
     "id": "voiceChannel",
+    "type": int,
     "hidden": True
   },
   {
