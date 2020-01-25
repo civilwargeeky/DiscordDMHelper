@@ -133,7 +133,7 @@ class MyClient(discord.Client):
   async def on_ready(self):
     log.info(f'Logged on as {self.user}!'.format(self.user))
     if not discord.opus.is_loaded():
-      discord.opus.load_opus('libopus-0.dll')
+      discord.opus.load_opus('libopus-0.x86.dll')
     if settings["voiceChannel"]: # If we have a saved voice channel, connect immediately
       log.info("Connecting to stored voice channel")
       await self.updateChannel(settings["voiceChannel"])
