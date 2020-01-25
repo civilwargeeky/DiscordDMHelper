@@ -1,0 +1,4 @@
+Project is built using Python 3.8.1 and discord.py 1.3.0
+
+Note: When updating discord.py to 1.3.0, it crashes with "FileNotFoundError: Could not find module 'libopus-0.dll'..."
+Go into Python38-32\Lib\site-packages\discord\bin and rename libopus-0.x86.dll to libopus-0.dll then it works correctly again

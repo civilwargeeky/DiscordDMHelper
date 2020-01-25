@@ -1,9 +1,25 @@
 import zipfile, urllib.request as request, sys, io, os, shutil, time
-
 import requests, zipfile, tarfile, io
+
+"""
+This file builds the DiscordDMHelper project including actions such as
+1) Updating our version file
+2) Downloading any binary files that need to be packaged with the installer
+3) Running pyinstaller (using commandline installed pyinstaller, ensure this is the correct version)
+4) Packaging the executable into an installer using Inno Setup Compiler
+
+It has several command line arguments which are specified below
+  With no arguments it builds and increments the bugfix part of version (4th part of tuple)
+  revision: builds and increments the revision part of version (3rd part of tuple)
+  minor: builds and increments the minor part of version (2nd part of tuple)
+  major: builds and increments the major part of version (1st part of tuple)
+  specific [version]: builds and sets the version to [version] if given in the correct format
+  clean: clears the build and dist folders and any other build artifacts before exiting
+"""
 
 CABLE_DIR  = "audioCable"
 CABLE_URL  = "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip"
+INNO_SETUP = '"C:\Program Files (x86)\Inno Setup 5\Compil32.exe"'
 EXE_VERSION_FILE_TEMPLATE = "file_version_info_template.py"
 EXE_VERSION_FILE = "file_version_info.py"
 
@@ -27,7 +43,11 @@ startTime = time.time()
 if "clean" in sys.argv:
   print("Deleting all extra files")
   for dir in ("audioCable", "ffmpeg", "build", "dist"):
-    shutil.rmtree(dir)
+    try:
+      shutil.rmtree(dir)
+      print("Deleted:", dir)
+    except FileNotFoundError:
+      print("Not found:", dir)
   for file in (EXE_VERSION_FILE,):
     os.remove(file)
   sys.exit(0)
@@ -46,7 +66,20 @@ with open("version.txt") as file:
 oldVersion = version[:]
 
 # Update the current version if requested
-if "major" in sys.argv:
+if "specific" in sys.argv: # They can update it to a specific version but we have to verify it
+  try:
+    strVersion = sys.argv[sys.argv.index("specific")+1]
+    version = tuple([int(part) for part in strVersion.split(".")])
+    if len(version) != 4 or any(part < 0 for part in version):
+      raise ValueError
+  except IndexError:
+    print("No version number found in specific building. Check command line arguments")
+    raise RuntimeError("Improper Version")
+  except ValueError:
+    print("Version number was not a proper string in the format X.X.X.X")
+    raise RuntimeError("Improper Version")
+  
+elif "major" in sys.argv:
   version = tuple([version[0]+1, 0, 0, 0])
 elif "minor" in sys.argv:
   version = tuple([version[0], version[1]+1, 0, 0])
@@ -84,7 +117,7 @@ try:
 
   ### STEP 4: Run the installer compiler ###
   print(">>> Making installer")
-  if os.system('"C:\Program Files (x86)\Inno Setup 5\Compil32.exe" /cc _build.iss'):
+  if os.system(INNO_SETUP+" /cc _build.iss"):
     raise OSError("os.system call failed")
   print(">>> Making installer complete")
 except: # If anything goes wrong in building, put our version number back to what it was
