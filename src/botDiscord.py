@@ -111,10 +111,7 @@ class MyClient(discord.Client):
     self.vc: discord.VoiceClient = None # Voice Client object of the currently connected channel
 
   def _callCoro(self, coro):
-    asyncio.get_event_loop().call_soon(asyncio.ensure_future(coro))
-
-  def _waitCoro(self, coro):
-   asyncio.wait_for(asyncio.ensure_future(coro), 10)
+    asyncio.get_event_loop().call_soon_threadsafe(asyncio.ensure_future(coro))
 
   async def updateChannel(self, channel: discord.VoiceChannel):
     if type(channel) == int:
@@ -132,8 +129,8 @@ class MyClient(discord.Client):
 
   async def on_ready(self):
     log.info(f'Logged on as {self.user}!'.format(self.user))
-    if not discord.opus.is_loaded():
-      discord.opus.load_opus('libopus-0.x86.dll')
+    #if not discord.opus.is_loaded():
+    #  discord.opus.load_opus('libopus-0.x86.dll')
     if settings["voiceChannel"]: # If we have a saved voice channel, connect immediately
       log.info("Connecting to stored voice channel")
       await self.updateChannel(settings["voiceChannel"])
@@ -161,15 +158,15 @@ class MyClient(discord.Client):
       elif message.content[1:] == "set game":
         log.info("Setting new presence")
         await message.channel.send("Waiting for new game title")
-        newName = await self.wait_for(timeout=10, check=lambda m: message.author == m.author)
+        newName = await self.wait_for("message", timeout=10, check=lambda m: message.author == m.author)
         newName = newName.content if newName else settings["gamePlaying"]["name"]
-        await self.changeGame(**settings["gamePlaying"])
+        await self.changeGame(newName)
 
-  async def changeGame(self, name=None, type=0, save=True):
+  async def changeGame(self, name=None, type=discord.ActivityType.playing, save=True):
     log.info(f"Changing game presence to '{name}' with type {type}")
-    settings["gamePlaying"] = {"name": name, "type": 0}
+    settings["gamePlaying"] = {"name": name, "type": int(type)}
     if name:
-      await self.change_presence(discord.Activity(name=name, type=type))
+      await self.change_presence(activity=discord.Activity(name=name, type=type))
     if save:
       settingsModule.save()
 
@@ -203,7 +200,7 @@ class MyClient(discord.Client):
         self.vc.resume() # Should automatically start audioFile when we first read
 
   def async_logout(self):
-    self._waitCoro(self.logout())
+    self._callCoro(self.logout())
 
 def start():
   print(discord.version_info)

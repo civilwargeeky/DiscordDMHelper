@@ -37,6 +37,8 @@ if __name__ == "__main__":
         client.pause()
       if cmd == "s":
         client.async_changeGame(" ".join(text.split()[1:]))
+      if cmd == "x":
+        raise KeyboardInterrupt
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
     client.async_logout()
