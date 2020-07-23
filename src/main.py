@@ -1,5 +1,5 @@
 import logging, sys
-import botDiscord, updater, gui
+import botDiscord, updater, settings
 
 import logger
 logger.setup()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
   """.format(settings.discord["commandChar"])
 
   try:
-    """
+    #"""
     print('Press ctrl-C to exit. "Help" for commands')
     while True:
       text = input("> ")
@@ -54,8 +54,8 @@ if __name__ == "__main__":
           settings.save()
       if cmd == "x":
         raise KeyboardInterrupt
-      """
-    gui.run()
+      #"""
+    #gui.run()
   except KeyboardInterrupt:
     print("Accepted Keyboard Interrupt!")
   finally:
