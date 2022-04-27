@@ -103,8 +103,9 @@ settings.newSetting(
 
 
 class MyClient(discord.Client):
+  defaultIntents = discord.Intents.default()
   def __init__(self, audioFile: MockFile, recordStream, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+    super().__init__(*args, intents=self.defaultIntents, **kwargs)
     self.audioFile = audioFile
     self.recordStream = recordStream
     self.channel: discord.VoiceChannel = None # Voice channel that we are to connect to
@@ -200,7 +201,7 @@ class MyClient(discord.Client):
         self.vc.resume() # Should automatically start audioFile when we first read
 
   def async_logout(self):
-    self._callCoro(self.logout())
+    self._callCoro(self.close())
 
 def start():
   print(discord.version_info)

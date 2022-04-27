@@ -11,7 +11,7 @@ block_cipher = None
           
 a = Analysis(['src\\main.py'],
              pathex=['Q:\\Coding\\Projects\\Python\\DiscordDMHelper'],
-             binaries=[(get(port_audio_bin, "libportaudio32bit.dll"), join(port_audio_bin, ".")), (get("discord", "bin","*"), ".")],
+             binaries=[(get(port_audio_bin, "libportaudio64bit.dll"), join(port_audio_bin, ".")), (get("discord", "bin","*"), ".")],
              datas=[],
              hiddenimports=["numpy"],
              hookspath=[],
